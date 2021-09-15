@@ -1,3 +1,5 @@
 
 venv
 ___pycache__/
+.DS_Store
+creditionals.txt
