@@ -59,32 +59,33 @@ class change_status:
 
     def get_low_rate_of_sale(self,
                             lim_days=1,
-                            lim_ros=80.0,
-                            min_ros=30.)\
-                                 -> List[Dict[str,str]]:
+                            lim_ros=80.0)\
+                            -> List[Dict[str,str]]:
                             
         products_data = self.return_endpoint(self.inital_target)
-        for_discount,for_replenishment = [] , []
+        for_discount=[]
         for idx in range(len(products_data.get("products"))):
+            
             curr = products_data.get("products")[idx].get("variants")[0]
             strs = curr.get("created_at")
+            
             period_selling = self.today_diff(\
                 datetime.strptime(strs.replace(\
                 strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
-            ros = self.caclulate_ROS(curr.get("inventory_quantity")-1,curr.get("old_inventory_quantity"))
-            if (period_selling >= lim_days ) and (ros > lim_ros):
+            ros = self.caclulate_ROS(curr.get("inventory_quantity")-2,curr.get("old_inventory_quantity"))
+
+            if (period_selling >= lim_days ) and (ros >= lim_ros):
                 for_discount.append(products_data.get("products")[idx])
-            if (ros <= min_ros):
-                for_replenishment.append(products_data.get("products")[idx])
-        return for_discount,for_replenishment
+
+        return for_discount
     
     def insert_price_change(self)->None:
-        for_discount,_ = self.get_low_rate_of_sale()
+        for_discount = self.get_low_rate_of_sale()
         for d in for_discount:
-            update = d.get("variants")
-            update[0]["price"] = self.apply_lower_price(update[0].get("price"))
-            yield update
-    
+            update = d.get("variants")[0]
+            update["price"] = self.apply_lower_price(update.get("price"))
+            print(update)
+
     def get_ids_by_status(self,
                           ids_list:List[Dict[str,str]],
                           search_pattern: re.Pattern = None)\
