@@ -76,7 +76,7 @@ class change_status:
             period_selling = self.today_diff(\
                 datetime.strptime(strs.replace(\
                 strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
-            ros = self.caclulate_ROS(curr.get("inventory_quantity")-2,curr.get("old_inventory_quantity"))
+            ros = self.caclulate_ROS(curr.get("inventory_quantity"),curr.get("old_inventory_quantity"))
 
             if (period_selling >= lim_days ) and (ros >= lim_ros):
                 print("got it")
@@ -127,6 +127,7 @@ class change_status:
                     prod_id:str,
                     payload:Dict[str,str])\
                     -> Dict[str,str]:
+
         destination_url = self.creds.get("url") + endpoint.lower() + str(prod_id) + ".json"
         return self.submit_put_request(destination_url , payload)
 
