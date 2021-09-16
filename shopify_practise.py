@@ -54,26 +54,42 @@ class change_status:
     def caclulate_ROS(self,units_sold , oriingal_amount) -> float:
         return (units_sold/oriingal_amount)  * 100
 
-    def apply_lower_price(self,price):
-        return None
+    def apply_lower_price(self,price:float,discount:float=.10):
+        return float(price) - float(price) * discount
 
-    def get_low_rate_of_sale(self,lim_days=1,lim_ros=80.0,min_ros=10.) -> List[Dict[str,str]]:
+    def get_low_rate_of_sale(self,
+                            lim_days=1,
+                            lim_ros=80.0,
+                            min_ros=30.)\
+                                 -> List[Dict[str,str]]:
+                            
         products_data = self.return_endpoint(self.inital_target)
-        for_discount,for_replenishment = {} , {}
+        for_discount,for_replenishment = [] , []
         for idx in range(len(products_data.get("products"))):
             curr = products_data.get("products")[idx].get("variants")[0]
             strs = curr.get("created_at")
             period_selling = self.today_diff(\
                 datetime.strptime(strs.replace(\
                 strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
-            ros = self.caclulate_ROS(curr.get("inventory_quantity")-4,curr.get("old_inventory_quantity"))
+            ros = self.caclulate_ROS(curr.get("inventory_quantity")-1,curr.get("old_inventory_quantity"))
             if (period_selling >= lim_days ) and (ros > lim_ros):
-                for_discount.update(products_data.get("products")[idx])
+                for_discount.append(products_data.get("products")[idx])
             if (ros <= min_ros):
-                for_replenishment.update(products_data.get("products")[idx])
+                for_replenishment.append(products_data.get("products")[idx])
         return for_discount,for_replenishment
-        
-    def get_ids_by_status(self,ids_list:List[Dict[str,str]] , search_pattern: re.Pattern = None)->list[str]:
+    
+    def insert_price_change(self)->None:
+        for_discount,_ = self.get_low_rate_of_sale()
+        for d in for_discount:
+            update = d.get("variants")
+            update[0]["price"] = self.apply_lower_price(update[0].get("price"))
+            yield update
+    
+    def get_ids_by_status(self,
+                          ids_list:List[Dict[str,str]],
+                          search_pattern: re.Pattern = None)\
+                              ->list[str]:
+
         search_pattern = self.search_draft if not(search_pattern) else search_pattern
         target_keys=['id','status']
         return [i for i in  (", ".join(str(d.get(i)) for i in target_keys) for d in ids_list["products"]) if search_pattern.search(i)]
@@ -82,8 +98,13 @@ class change_status:
         if not(draft_replace): self.order=self.order[::-1]
         return [i.replace(self.order[0],self.order[-1]).split(",") for i in ids_not_active]
         
-    def update_product_status(self,endpoint:str,prod_id:str,status:str) -> Dict[str,str]:
-        payload = {"product":{"status": status}}
+    def update_product_status(self,
+                             endpoint:str,
+                             prod_id:str,status:str,
+                             payload:Dict[str,str] = None)\
+                                  -> Dict[str,str]:
+
+        payload = {"product":{"status": status}} if not(payload) else payload
         destionation_url = self.creds.get("url") + self.check_endpoint(endpoint).lower() + str(prod_id) + ".json"
         r = requests.put(destionation_url,json=payload)
         try:
@@ -104,7 +125,6 @@ class change_status:
 if __name__ == "__main__":
 
     access = change_status()
-    discounts,rep =  access.get_low_rate_of_sale()
-    print(discounts)
-    print(rep)
+    print(access.insert_price_change())
+
  
