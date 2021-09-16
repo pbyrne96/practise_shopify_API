@@ -94,9 +94,7 @@ class change_status:
         return list(self.insert_price_change())
     
     def apply_price_changes(self):
-        print(type(self.access_price_change_staging()[0].get("price")))
-        return [self.update_prices(self.endpoint,str(d.get("product_id")),\
-           {"product":{"variant":d }}) for d in self.access_price_change_staging() ]
+        return [self.update_prices(self.endpoint,str(d.get("product_id")),{"product":{"variant":d }}) for d in self.access_price_change_staging() ]
 
     def get_ids_by_status(self,
                           ids_list:List[Dict[str,str]],
@@ -107,7 +105,9 @@ class change_status:
         target_keys=['id','status']
         return [i for i in  (", ".join(str(d.get(i)) for i in target_keys) for d in ids_list["products"]) if search_pattern.search(i)]
 
-    def format_ids_for_staging(self,ids_not_active:List[str],draft_replace:bool=True) -> List[str]:
+    def format_ids_for_staging(self,
+                              ids_not_active:List[str],
+                              draft_replace:bool=True) -> List[str]:
         if not(draft_replace): self.order=self.order[::-1]
         return [i.replace(self.order[0],self.order[-1]).split(",") for i in ids_not_active]
         
