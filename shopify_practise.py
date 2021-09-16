@@ -23,7 +23,8 @@ class change_status:
         self.endpoint = '/products/'
         self.inital_target = "products.json"
         self.created_at_format = "%Y-%m-%d %H:%M:%S"
-        self.today_diff = lambda strs_date : datetime.strptime(str(datetime.today().strftime(self.created_at_format)),self.created_at_format).day - strs_date.day
+        self.today_diff = lambda strs_date :\
+            datetime.strptime(str(datetime.today().strftime(self.created_at_format)),self.created_at_format).day - strs_date.day
         
 
     def santitize_creditonals(self,file_path:str) -> Dict[str,str]:
