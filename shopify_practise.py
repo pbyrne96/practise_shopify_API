@@ -1,8 +1,10 @@
 
 import requests 
 import re
-from typing import List,Dict,Set,Callable
+from typing import List,Dict,Callable
+from collections import ChainMap
 import os
+from datetime import datetime
 
 FILE_PATH = os.path.join(os.getcwd(),"creditionals.txt")
 
@@ -17,19 +19,22 @@ class change_status:
         self.replace_active = "active"
         self.replace_draft = "draft"
         self.creds = self.access_creds(self.file_path)
+        self.order = [self.replace_draft,self.replace_active]
+        self.endpoint = '/products/'
+        self.inital_target = "products.json"
+        self.created_at_format = "%Y-%m-%d %H:%M:%S"
+        self.today_diff = lambda strs_date : datetime.strptime(str(datetime.today().strftime(self.created_at_format)),self.created_at_format).day - strs_date.day
+        
 
     def santitize_creditonals(self,file_path:str) -> Dict[str,str]:
         with open(file_path,"r") as f: creditionals = [i.replace("\n",'') for i in f.readlines()]
         index_split = lambda chr: self.search_creds.search(chr) 
-        output={}
         for cred in creditionals:
             indexer = index_split(cred)
-            ins = {cred[:indexer.span()[0]].strip() : cred[indexer.span()[0]+1:].strip()} if indexer else {}
-            output.update(ins)
-        yield output        
-
+            yield {cred[:indexer.span()[0]].strip() : cred[indexer.span()[0]+1:].strip()} if indexer else {}
+      
     def access_creds(self,file_path:str) -> Dict[str,str]:
-        return next(iter(self.santitize_creditonals(file_path)))
+        return dict(ChainMap(*list(self.santitize_creditonals(file_path))))
 
     def check_endpoint(self,endpoint) -> str:
         check_dash = endpoint.find(r"/")
@@ -39,16 +44,43 @@ class change_status:
         target_url = self.creds.get("url")+self.check_endpoint(endpoint).lower()
         return requests.get(target_url).json()
 
-    def get_ids_by_status(self,ids_list:List[Dict[str,str]] , search_pattern: Callable = None)->list[str]:
+    def check_low_inventory_status(self,lim:int=10):
+        products_data = self.return_endpoint(self.inital_target)
+        l = products_data[self.inital_target.split(".")[0]]
+        output = {}
+        [output.update(l[idx]) for idx in range(len(l)) if (l[idx].get("variants")[0].get("inventory_quantity")) < lim]
+        return self.change_status(self.get_ids_by_status({"products":[output]},self.search_active)) if output else output
+
+    def caclulate_ROS(self,units_sold , oriingal_amount) -> float:
+        return (units_sold/oriingal_amount)  * 100
+
+    def apply_lower_price(self,price):
+        return None
+
+    def get_low_rate_of_sale(self,lim_days=1,lim_ros=80.0,min_ros=10.) -> List[Dict[str,str]]:
+        products_data = self.return_endpoint(self.inital_target)
+        for_discount,for_replenishment = {} , {}
+        for idx in range(len(products_data.get("products"))):
+            curr = products_data.get("products")[idx].get("variants")[0]
+            strs = curr.get("created_at")
+            period_selling = self.today_diff(\
+                datetime.strptime(strs.replace(\
+                strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
+            ros = self.caclulate_ROS(curr.get("inventory_quantity")-4,curr.get("old_inventory_quantity"))
+            if (period_selling >= lim_days ) and (ros > lim_ros):
+                for_discount.update(products_data.get("products")[idx])
+            if (ros <= min_ros):
+                for_replenishment.update(products_data.get("products")[idx])
+        return for_discount,for_replenishment
+        
+    def get_ids_by_status(self,ids_list:List[Dict[str,str]] , search_pattern: re.Pattern = None)->list[str]:
         search_pattern = self.search_draft if not(search_pattern) else search_pattern
         target_keys=['id','status']
         return [i for i in  (", ".join(str(d.get(i)) for i in target_keys) for d in ids_list["products"]) if search_pattern.search(i)]
 
-    def format_ids_for_staging_draft_active(self,ids_not_active:List[str]) -> None:
-        return [i.replace(self.replace_draft,self.replace_active).split(",") for i in ids_not_active]
-
-    def format_ids_for_staging_active_draft(self,ids_not_active:List[str]) -> None:
-        return [i.replace(self.replace_active,self.replace_draft).split(",") for i in ids_not_active]
+    def format_ids_for_staging(self,ids_not_active:List[str],draft_replace:bool=True) -> List[str]:
+        if not(draft_replace): self.order=self.order[::-1]
+        return [i.replace(self.order[0],self.order[-1]).split(",") for i in ids_not_active]
         
     def update_product_status(self,endpoint:str,prod_id:str,status:str) -> Dict[str,str]:
         payload = {"product":{"status": status}}
@@ -59,19 +91,20 @@ class change_status:
         except Exception as e:
             return r
 
-    def action_status(self,function_given:bool = False):
-        endpoint = '/products/'
-        function = self.format_ids_for_staging_draft_active if function_given else self.format_ids_for_staging_active_draft
-        search_pattern = self.search_active if function else None
-        print(function,search_pattern)
-        format_for_staging = function(self.get_ids_by_status(self.return_endpoint('products.json')))
-        return [self.update_product_status(endpoint,*list(map(str.strip,params))) for params in format_for_staging]
+    def action_status(self,to_draft:bool = True) ->None:
+        """ change logic -> Maybe remove as it changes id's with no business logic """
+        query = self.search_active if not(to_draft) else None
+        ids_current = self.get_ids_by_status(self.return_endpoint('products.json'),query)
+        return None
+
+    def change_status(self,staging_list:List[str]) ->List[Dict[str,str]]:
+        format_for_staging = self.format_ids_for_staging(staging_list,False)
+        return [access.update_product_status(access.endpoint,*list(map(str.strip,params))) for params in format_for_staging]
 
 if __name__ == "__main__":
+
     access = change_status()
-    access.action_status(False)
-    
-    # format_for_staging = self.format_ids_for_staging_draft_active(self.get_ids_by_status(self.return_endpoint('products.json')))
-    # print(format_for_staging)
-    # completed = [self.update_product_status(endpoint,*list(map(str.strip,params))) for params in format_for_staging]
-    # return completed
+    discounts,rep =  access.get_low_rate_of_sale()
+    print(discounts)
+    print(rep)
+ 
