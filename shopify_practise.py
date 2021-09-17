@@ -56,7 +56,7 @@ class change_status:
         try:
             return (units_sold/oriingal_amount)  * 100
         except ZeroDivisionError:
-            return 100.0
+            return 0.0
 
     def apply_lower_price(self,price:float,discount:float=.10) -> float:
         return float(price) - float(price) * discount
@@ -72,14 +72,10 @@ class change_status:
             
             curr = products_data.get("products")[idx].get("variants")[0]
             strs = curr.get("created_at")
-            
-            period_selling = self.today_diff(\
-                datetime.strptime(strs.replace(\
-                strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
+            period_selling = self.today_diff(datetime.strptime(strs.replace(strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
             ros = self.caclulate_ROS(curr.get("inventory_quantity"),curr.get("old_inventory_quantity"))
 
             if (period_selling >= lim_days ) and (ros >= lim_ros):
-                print("got it")
                 for_discount.append(products_data.get("products")[idx])
 
         return for_discount
@@ -95,7 +91,8 @@ class change_status:
         return list(self.insert_price_change())
     
     def apply_price_changes(self):
-        return [self.update_prices(self.endpoint,str(d.get("product_id")),{"product":{"variant":d }}) for d in self.access_price_change_staging() ]
+        return [self.update_prices(self.endpoint,str(d.get("product_id")),{"product":{"variant":d }})\
+            for d in self.access_price_change_staging() ]
 
     def get_ids_by_status(self,
                           ids_list:List[Dict[str,str]],
@@ -108,7 +105,7 @@ class change_status:
 
     def format_ids_for_staging(self,
                               ids_not_active:List[str],
-                              draft_replace:bool=True) -> List[str]:
+                              draft_replace:bool=True)-> List[str]:
         if not(draft_replace): self.order=self.order[::-1]
         return [i.replace(self.order[0],self.order[-1]).split(",") for i in ids_not_active]
         
@@ -137,12 +134,6 @@ class change_status:
             return r.json()
         except Exception as e:
             return r
-
-    def action_status(self,to_draft:bool = True) ->None:
-        """ change logic -> Maybe remove as it changes id's with no business logic """
-        query = self.search_active if not(to_draft) else None
-        ids_current = self.get_ids_by_status(self.return_endpoint('products.json'),query)
-        return None
 
     def change_status(self,staging_list:List[str]) ->List[Dict[str,str]]:
         format_for_staging = self.format_ids_for_staging(staging_list,False)
