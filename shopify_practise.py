@@ -5,6 +5,8 @@ from typing import List,Dict,Callable
 from collections import ChainMap
 import os
 from datetime import datetime
+import math as m
+import numpy as np
 
 FILE_PATH = os.path.join(os.getcwd(),"creditionals.txt")
 
@@ -23,10 +25,8 @@ class change_status:
         self.endpoint = '/products/'
         self.inital_target = "products.json"
         self.created_at_format = "%Y-%m-%d %H:%M:%S"
-        self.today_diff = lambda strs_date :\
-            datetime.strptime(str(datetime.today().strftime(self.created_at_format)),self.created_at_format).day - strs_date.day
+        self.today_diff = lambda strs_date : datetime.strptime(str(datetime.today().strftime(self.created_at_format)),self.created_at_format).day - strs_date.day
         
-
     def santitize_creditonals(self,file_path:str) -> Dict[str,str]:
         with open(file_path,"r") as f: creditionals = [i.replace("\n",'') for i in f.readlines()]
         index_split = lambda chr: self.search_creds.search(chr) 
@@ -63,8 +63,7 @@ class change_status:
 
     def get_low_rate_of_sale(self,
                             lim_days=1,
-                            lim_ros=80.0)\
-                            -> List[Dict[str,str]]:
+                            lim_ros=80.0) -> List[Dict[str,str]]:
                             
         products_data = self.return_endpoint(self.inital_target)
         for_discount=[]
@@ -96,8 +95,7 @@ class change_status:
 
     def get_ids_by_status(self,
                           ids_list:List[Dict[str,str]],
-                          search_pattern: re.Pattern = None)\
-                          ->list[str]:
+                          search_pattern: re.Pattern = None)->list[str]:
 
         search_pattern = self.search_draft if not(search_pattern) else search_pattern
         target_keys=['id','status']
@@ -122,8 +120,7 @@ class change_status:
     def update_prices(self,
                     endpoint:str,
                     prod_id:str,
-                    payload:Dict[str,str])\
-                    -> Dict[str,str]:
+                    payload:Dict[str,str]) -> Dict[str,str]:
 
         destination_url = self.creds.get("url") + endpoint.lower() + str(prod_id) + ".json"
         return self.submit_put_request(destination_url , payload)
@@ -138,10 +135,19 @@ class change_status:
     def change_status(self,staging_list:List[str]) ->List[Dict[str,str]]:
         format_for_staging = self.format_ids_for_staging(staging_list,False)
         return [access.update_product_status(self.endpoint,*list(map(str.strip,params))) for params in format_for_staging]
+    
+    def define_replen_rules(self,n:int,limit:int)->int:
+        find_nth_lim = n ** (np.log(n) // 2) 
+        find_sin = m.sin(m.sqrt(find_nth_lim)) ** .5
+        return limit ** (find_nth_lim//find_sin) 
+
+    def __hash__(self,__int: int) -> int:
+        return  hash(str(__int**.5%97*100))
 
 if __name__ == "__main__":
 
     access = change_status()
     print(access.apply_price_changes())
+
 
  
