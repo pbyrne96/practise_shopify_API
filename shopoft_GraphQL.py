@@ -21,17 +21,16 @@ class graphQL_interactions(change_status):
 
     async def fetch_products_by_id(self,id_no:str)->str:
         query = """ 
-                query($id ID!){
-                    product($id ID!) {
+                query($id {ID}){
+                    product($id {ID}) {
                         id
                         title
                     }
                 }
-                """
-        variables = { id : id_no}
-        submit_to_query = ""
-        
-        await asyncio.gather()
+                """.format(ID=str(id_no))
+                
+        return_var = await asyncio.gather(r.put(self.creds.get("url"),json=query))
+        return return_var
 
 
 class Query(g.ObjectType):
