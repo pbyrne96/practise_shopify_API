@@ -139,7 +139,7 @@ class change_status:
     def define_replen_rules(self,n:int,limit:int)->int:
         find_nth_lim = n ** (np.log(n) // 2) 
         find_sin = m.sin(m.sqrt(find_nth_lim)) ** .5
-        return limit ** (find_nth_lim//find_sin) 
+        return round(limit ** (find_nth_lim//find_sin))
 
     def __hash__(self,__int: int) -> int:
         return  hash(str((__int**.5)%97*100))
