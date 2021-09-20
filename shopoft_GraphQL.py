@@ -9,6 +9,11 @@ import graphene as g
 class graphQL_interactions(change_status):
     def __init__(self, file_path: str) -> None:
         super().__init__(file_path=FILE_PATH)
+        self.endpoint = ""
+        self.headers = {
+            "Content-type": "applications/json",
+            "X-shopfy-access-token": self.creds.get("password")
+        }
     
     def sanitize_search_term(self,searchTerm:str) ->str:
         return " ".join(filter(str.isalpha(),searchTerm))
