@@ -142,7 +142,7 @@ class change_status:
         return limit ** (find_nth_lim//find_sin) 
 
     def __hash__(self,__int: int) -> int:
-        return  hash(str(__int**.5%97*100))
+        return  hash(str((__int**.5)%97*100))
 
 if __name__ == "__main__":
 
