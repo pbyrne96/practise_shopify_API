@@ -6,7 +6,7 @@ from collections import ChainMap
 import os
 from datetime import datetime
 import math as m
-import numpy as np
+
 
 FILE_PATH = os.path.join(os.getcwd(),"creditionals.txt")
 

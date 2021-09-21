@@ -39,11 +39,13 @@ class graphQL_interactions(change_status):
                                 headers=self.header).json()
 
 
-    def fetch_all_products(self,amount_to_view:str='3'):
+    def fetch_all_products(self,amount_to_view:str='10'):
         query = """
             { products(first: %s){
+                
                 edges{
                     node {
+                        id
                         title
                         }
                     }    
