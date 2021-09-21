@@ -95,7 +95,7 @@ class change_status:
 
     def get_ids_by_status(self,
                           ids_list:List[Dict[str,str]],
-                          search_pattern: re.Pattern = None)->list[str]:
+                          search_pattern: re.Pattern = None)->List[str]:
 
         search_pattern = self.search_draft if not(search_pattern) else search_pattern
         target_keys=['id','status']
