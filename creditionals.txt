@@ -1,5 +1,0 @@
-api_key = 738b1dfbb5b8426aa1a9809bc77b4d94
-password = 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
-url = https://738b1dfbb5b8426aa1a9809bc77b4d94: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@weareeight.myshopify.com/admin/api/2021-07
-graph_url = https://{shop}.myshopify.com/admin/api/2021-07/graphql.json
-SECRET=c9e3f9d87fda57e5906c081a38f48e0f19a1d181a45a7caee0dbc2549a9c0b71
