@@ -14,8 +14,7 @@ class graphQL_interactions(change_status):
                        'X-Shopify-Access-Token': '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'
                        }
 
-    def sanitize_string(self,searchTerm:str) ->str:
-        return " ".join(filter(str.isalpha(),searchTerm))
+
 
     def fetch_single_products_by_id(self,id_no:str)->str:
         query = """ 
