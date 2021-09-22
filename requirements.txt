@@ -7,3 +7,6 @@ requests==2.26.0
 setuptools==57.4.0
 typing==3.7.4.3
 urllib3==1.26.6
+flask==2.0.1
+shopify_api==0.4.0
+pyngrok==5.1.0
