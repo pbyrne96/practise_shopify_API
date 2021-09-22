@@ -14,6 +14,9 @@ app = Flask(__name__)
 SECRET = bytes(change_status().creds.get("SECRET"),'utf-8')
 end_file = os.getcwd()+"/staging.json"
 
+# gem setup 
+shop_url = "https://{}:{}@{}.myshopify.com"
+
 def verify_webhook(data, hmac_header ):
     digest = hmac.new(SECRET, data , hashlib.sha256).digest()
     computed_hmac = base64.b64encode(digest)
@@ -30,16 +33,14 @@ def handle_webhook():
         abort(401)
 
     data = json.loads(data.decode('utf-8'))
+    data['id'] = int(data.get('id'))
     with open(end_file,"w") as f: json.dump(data,f,indent=1)
-    return data,200
+    return "Webhock received.",200
 
 def sanitize_string(searchTerm:str) ->str:
     new_key = "".join(filter(str.isalpha,searchTerm))
     return new_key if new_key else searchTerm
 
-def clean_d():
-    with open(end_file,"r") as f: data = json.load(f)
-    return data
 
 if __name__ == "__main__":
     app.run(debug=True)
