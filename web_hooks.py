@@ -11,10 +11,8 @@ app = Flask(__name__)
 SECRET = bytes(change_status().creds.get("SECRET"),'utf-8')
 
 def verify_webhook(data, hmac_header ):
-    print(type(data))
     digest = hmac.new(SECRET, data , hashlib.sha256).digest()
     computed_hmac = base64.b64encode(digest)
-
     return hmac.compare_digest(computed_hmac, hmac_header.encode('utf-8'))
 
 
