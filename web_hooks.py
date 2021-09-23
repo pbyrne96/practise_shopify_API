@@ -61,12 +61,20 @@ def order_update(file_to_submit=order_update_file):
 def inspect_file(file_name):
     if file_name not in os.listdir():
         assert ("file not in directory")
-    with open(file_name,"r") as f: data = json.load(f)
     
-    for k,v in data.get('total_line_items_price_set'):
-        print(k,v)
+    with open(file_name,"r") as f: data = json.load(f)
+    items_updated = iter(data.get("line_items"))
+    while True:
+        try:
+            curr = next(items_updated)
+            for k,v in curr.items():
+                print(k)
+        except StopIteration:
+            break
+
 
     throw_away = 'shipping_lines'
+
 if __name__ == "__main__":
     #app.run(debug=True)
     print()
