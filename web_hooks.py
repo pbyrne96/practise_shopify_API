@@ -11,18 +11,16 @@ import re
 
 app = Flask(__name__)
 
-SECRET = bytes(change_status().creds.get("SECRET"),'utf-8')
+access = change_status().creds
+SECRET = bytes(access.get("SECRET"),'utf-8')
+shop_url = access.get("url")
 end_file = os.getcwd()+"/staging.json"
-
-# gem setup 
-shop_url = "https://{}:{}@{}.myshopify.com"
+cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 def verify_webhook(data, hmac_header ):
     digest = hmac.new(SECRET, data , hashlib.sha256).digest()
     computed_hmac = base64.b64encode(digest)
     return hmac.compare_digest(computed_hmac, hmac_header.encode('utf-8'))
-
-
 
 @app.route('/eight/webhook/product_update', methods=['POST'])
 def handle_webhook():
@@ -34,12 +32,9 @@ def handle_webhook():
 
     data = json.loads(data.decode('utf-8'))
     data['id'] = int(data.get('id'))
+    data['body_html'] = "".join(i if ord(i) < 128 else '' for i in re.sub(cleanr,'',data.get('body_html')))
     with open(end_file,"w") as f: json.dump(data,f,indent=1)
-    return "Webhock received.",200
-
-def sanitize_string(searchTerm:str) ->str:
-    new_key = "".join(filter(str.isalpha,searchTerm))
-    return new_key if new_key else searchTerm
+    return "Webhook received.",200
 
 
 if __name__ == "__main__":

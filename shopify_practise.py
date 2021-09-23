@@ -71,7 +71,8 @@ class change_status:
             
             curr = products_data.get("products")[idx].get("variants")[0]
             strs = curr.get("created_at")
-            period_selling = self.today_diff(datetime.strptime(strs.replace(strs[strs.find("".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
+            period_selling = self.today_diff(datetime.strptime(strs.replace(strs[strs.find(\
+                "".join(i for i in strs if i.isalpha()))]," ").split("+")[0] , self.created_at_format))
             ros = self.caclulate_ROS(curr.get("inventory_quantity"),curr.get("old_inventory_quantity"))
 
             if (period_selling >= lim_days ) and (ros >= lim_ros):

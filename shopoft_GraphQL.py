@@ -54,9 +54,35 @@ class graphQL_interactions(change_status):
         
         return r.post(self.endpoint, data=query,headers=self.header).json()
 
+    def fragments_and_tags_query(self,id,tags):
+        q = """
+        mutation tagsAdd($id:ID!, $tags: [String!]!){
+                tagsAdd(id:$id,tags:$tags){
+                    node{
+                    id
+                    ...on Product{
+                        title
+                        tags
+                    }
+                    ...on Customer{
+                        email
+                        tags
+                    }
+                    }
+                    userErrors{
+                    field
+                    message
+                    }
+                }
+                
+            """
+        query = {'query':q,'id':str(id),'tags': tags}
+        return r.post(self.endpoint,data=query,headers=self.header).json()
+
 
 if __name__ == "__main__":
     access = graphQL_interactions()
     print(access.fetch_all_products())
     print("**"*20)
     print(access.fetch_single_products_by_id("gid://shopify/Product/6966466937017"))
+    print(access.fragments_and_tags_query("gid://shopify/Product/6966466937017",'Coffee'))
