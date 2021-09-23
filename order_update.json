@@ -53,7 +53,7 @@
    "title": "Discount"
   }
  ],
- "discount_codes": [],
+ "discount_codes": ["BLAH"],
  "note_attributes": [],
  "payment_gateway_names": [
   "visa",
@@ -194,7 +194,7 @@
    "properties": [],
    "product_exists": true,
    "fulfillable_quantity": 1,
-   "grams": 0,
+   "grams": 12460,
    "price": "90.00",
    "total_discount": "5.00",
    "fulfillment_status": null,

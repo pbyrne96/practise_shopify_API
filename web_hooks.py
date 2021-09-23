@@ -37,7 +37,6 @@ def verify_webhook(data, hmac_header ):
 def activate_response(request):
     data = request.get_data()
     verified = verify_token(data,request)
-    print(verified)
     if not verified:
         abort(401)
 
@@ -58,25 +57,44 @@ def order_update(file_to_submit=order_update_file):
     submit_file(file_to_submit,data)
     return msg
     
-def determine_profitability(file_name):
-    if file_name not in os.listdir():
-        assert ("file not in directory")
+def get_data_for_profitability_analysis(file_name=order_update_file):
+    if file_name not in os.listdir(): assert ("file not in directory")
     
     with open(file_name,"r") as f: data = json.load(f)
+
     items_updated = iter(data.get("line_items"))
+    is_discount,order_id,time_stamp = data.get("discount_codes"),data.get("id"),data.get("created_at")
+    targets,this_order_meta,t = ("sku","price","grams","total_discount","quantity"),{},{}
+
     while True:
         try:
             curr = next(items_updated)
-            for k,v in curr.items():
-                print(k)
+            t = {curr.get(targets[0]):{k:curr.get(k) for k in targets[1:]}}
+            this_order_meta.update(t)
         except StopIteration:
             break
     
-    throw_away = 'shipping_lines'
+    this_order_meta["created_at"] = time_stamp
+    t = this_order_meta["discount_codes"] = is_discount if is_discount else None
+
+    return {order_id:this_order_meta}
+
+def insert_bundle_data_for_insertion():
+    most_recent_addition = get_data_for_profitability_analysis()
+    order_profitability = {}
+    for key,value in most_recent_addition.get(*list(most_recent_addition.keys())).items():
+        if key.isdigit():
+            weight = value.get("grams") * 0.001
+            value.pop('grams')
+            profit = float(value.get("price")) - float(value.get("total_discount")) * int(value.get("quantity"))
+            order_profitability[key] = [profit,weight]
+        else:
+            order_profitability[key] = value
+
+    return order_profitability
 
 if __name__ == "__main__":
     #app.run(debug=True)
-    print()
-    inspect_file(order_update_file)
- 
+    print("*"*20)
+    print(insert_bundle_data_for_insertion())
       
