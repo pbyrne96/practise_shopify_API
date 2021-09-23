@@ -35,7 +35,9 @@ class change_status:
             yield {cred[:indexer.span()[0]].strip() : cred[indexer.span()[0]+1:].strip()} if indexer else {}
       
     def access_creds(self,file_path:str) -> Dict[str,str]:
-        return dict(ChainMap(*list(self.santitize_creditonals(file_path))))
+        dic = dict(ChainMap(*list(self.santitize_creditonals(file_path))))
+        dic["url"] = dic.get("url").format(dic.get("api_key"),dic.get("password"))
+        return dic
 
     def check_endpoint(self,endpoint) -> str:
         check_dash = endpoint.find(r"/")
