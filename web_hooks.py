@@ -58,7 +58,7 @@ def order_update(file_to_submit=order_update_file):
     submit_file(file_to_submit,data)
     return msg
     
-def inspect_file(file_name):
+def determine_profitability(file_name):
     if file_name not in os.listdir():
         assert ("file not in directory")
     
@@ -71,8 +71,7 @@ def inspect_file(file_name):
                 print(k)
         except StopIteration:
             break
-
-
+    
     throw_away = 'shipping_lines'
 
 if __name__ == "__main__":
