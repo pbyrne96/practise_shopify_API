@@ -7,6 +7,8 @@ import os
 import json
 import re
 import os
+from datetime import datetime
+
 # import shopify
 
 app = Flask(__name__)
@@ -24,6 +26,7 @@ cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 verify_token = lambda data, r: verify_webhook(data,r.headers.get(HMAC_STR))
 clean_data = lambda data : json.loads(data.decode('utf-8'))
 
+datetime_format = "%Y-%m-%d %H:%M:%S"
 msg = "Webhook received.",200
 
 def submit_file(file_to_submit,data):
@@ -79,6 +82,11 @@ def get_data_for_profitability_analysis(file_name=order_update_file):
 
     return {order_id:this_order_meta}
 
+def strip_to_datetime(dateString):
+    dateString = re.split("[T+]",dateString)
+    dateString.pop(-1)
+    return datetime.strptime(" ".join(dateString),datetime_format)
+
 def insert_bundle_data_for_insertion():
     most_recent_addition = get_data_for_profitability_analysis()
     order_profitability = {}
@@ -91,7 +99,10 @@ def insert_bundle_data_for_insertion():
         else:
             order_profitability[key] = value
 
+    order_profitability["created_at"] = strip_to_datetime(order_profitability.get('created_at'))
     return order_profitability
+
+
 
 if __name__ == "__main__":
     #app.run(debug=True)
