@@ -89,8 +89,8 @@ def strip_to_datetime(dateString):
 def calc_net_prof_weight(dic):
 
     net_profit,weights = 0,0
-    iterate = list(dic.keys())
-    for k in iterate:
+
+    for k in list(dic.keys()):
         if target in k:
             params = dic.get(k)
             net_profit += params[0]
@@ -121,7 +121,7 @@ def insert_bundle_data_for_insertion():
 
 if __name__ == "__main__":
     #app.run(debug=True)
-    print("*"*20)
-    print(insert_bundle_data_for_insertion())
-
+    #print("*"*20)
+    #print(insert_bundle_data_for_insertion())
+    print(__name__)
       
