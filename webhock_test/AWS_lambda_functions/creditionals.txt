@@ -1,0 +1,11 @@
+api_key = 587317dfcef87a5785ec9378021e4f5a
+password = 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
+url = https://{}:{}@weareeight.myshopify.com/admin/api/2021-07
+graph_url = https://{shop}.myshopify.com/admin/api/2021-07/graphql.json
+SECRET=c9e3f9d87fda57e5906c081a38f48e0f19a1d181a45a7caee0dbc2549a9c0b71
+EVENTBRIDGE_ARN=arn:aws:events:eu-west-1::event-source/aws.partner/shopify.com/5838837/webtest
+AWS_USER_KEYS = AKIARMJAE7GXB2GGSJG4
+AWS_SECRET_KEYS = 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
+testing_partner_arn = arn:aws:events:eu-west-1::event-source/aws.partner/shopify.com/5838837/testing-two-staging
+EVENTBUS_ARN_STAGING= arn:aws:events:eu-west-1::event-source/aws.partner/shopify.com/5838837/testing-two-staging
+ENVIRONMENT = dev

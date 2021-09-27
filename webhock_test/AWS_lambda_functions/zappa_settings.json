@@ -1,0 +1,10 @@
+{
+    "aws_dev": {
+        "app_function": "web_hooks.app",
+        "profile_name": null,
+        "project_name": "aws-lambda-func",
+        "runtime": "python3.7",
+        "s3_bucket": "zappa-wtpcvt4s8",
+        "aws_region": "eu-west-1"
+    }
+}
