@@ -139,17 +139,8 @@ class change_status:
         format_for_staging = self.format_ids_for_staging(staging_list,False)
         return [access.update_product_status(self.endpoint,*list(map(str.strip,params))) for params in format_for_staging]
     
-    def define_replen_rules(self,n:int,limit:int)->int:
-        import numpy as np
-        find_nth_lim = n ** (np.log(n) // 2) 
-        find_sin = m.sin(m.sqrt(find_nth_lim)) ** .5
-        return round(limit ** (find_nth_lim//find_sin))
-
-    def __hash__(self,__int: int) -> int:
-        return  hash(str((__int**.5)%97*100))
-
 if __name__ == "__main__":
-
+    
     access = change_status()
     print(access.apply_price_changes())
 
